@@ -1,0 +1,21 @@
+# IDE
+.idea/
+
+# Environment
+.env
+
+# Private configs
+config.yaml
+
+# Logs
+*.log
+
+# Build outputs
+bin/
+dist/
+*.exe
+*.out
+
+# OS files
+.DS_Store
+Thumbs.db
