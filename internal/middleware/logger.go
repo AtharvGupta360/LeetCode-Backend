@@ -13,14 +13,15 @@ func RequestLogger() gin.HandlerFunc{
 		c.Next()
 		latency := time.Since(start)
 		statusCode := c.Writer.Status()
-		
-	
-		common.Logger.Infof("%s %s → %d (%v)",
+		requestID, _ := c.Get(RequestIDHeader)
+		common.Logger.Infof("[%s] %s %s → %d (%v)",
+			requestID,
 			c.Request.Method,
 			path,
 			statusCode,
 			latency,
-	)
+		)
+
 	}
 
 }

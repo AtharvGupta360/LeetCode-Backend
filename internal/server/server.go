@@ -13,16 +13,8 @@ import (
 func NewServer(cfg *config.Config) *gin.Engine {
 	gin.SetMode(cfg.Server.Mode)
 	router := gin.New()
-	corsConfig := middleware.CORSConfig{
-		AllowedOrigins:   cfg.CORS.AllowedOrigins,
-		AllowedMethods:   cfg.CORS.AllowedMethods,
-		AllowedHeaders:   cfg.CORS.AllowedHeaders,
-		ExposedHeaders:   cfg.CORS.ExposedHeaders,
-		AllowCredentials: cfg.CORS.AllowCredentials,
-		MaxAge:           cfg.CORS.MaxAge,
-	}
-	router.Use(middleware.CORS(&corsConfig))
-
+	router.Use(middleware.CORS(&cfg.CORS))
+	router.Use(middleware.RequestID())
 	router.Use(middleware.Recovery())
 	router.Use(middleware.RequestLogger())
 	router.GET("/health", func(c *gin.Context) {

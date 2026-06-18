@@ -2,15 +2,17 @@ package config
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 	"log"
+
+	"github.com/gupta/leetcode-judge/internal/middleware"
+	"github.com/spf13/viper"
 )
 
 type Config struct {
 	Server   ServerConfig   `mapstructure:"server"`
 	DataBase DatabaseConfig `mapstructure:"database"`
 	JWT      JWTConfig      `mapstructure:"jwt"`
-	CORS     CORSConfig     `mapstructure:"cors"`
+	CORS     middleware.CORSConfig `mapstructure:"cors"`
 }
 
 type ServerConfig struct {
@@ -30,14 +32,6 @@ type DatabaseConfig struct {
 	//ConnMaxLifetime time.Duration `mapstructure:"connMaxLifetime"`
 
 }
-type CORSConfig struct {
-	AllowedOrigins   []string `mapstructure:"allowedOrigins"`
-	AllowedMethods   []string `mapstructure:"allowedMethods"`
-	AllowedHeaders   []string `mapstructure:"allowedHeaders"`
-	ExposedHeaders   []string `mapstructure:"exposedHeaders"`
-	AllowCredentials bool     `mapstructure:"allowCredentials"`
-	MaxAge           int      `mapstructure:"maxAge"`
-}
 
 
 type JWTConfig struct {
@@ -50,11 +44,11 @@ func LoadConfig(path string) (*Config, error) {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(path)
 	viper.SetDefault("cors.allowedOrigins", []string{"http://localhost:3000", "http://localhost:5173"})
-viper.SetDefault("cors.allowedMethods", []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"})
-viper.SetDefault("cors.allowedHeaders", []string{"Content-Type", "Authorization", "X-Request-ID"})
-viper.SetDefault("cors.exposedHeaders", []string{"X-Request-ID"})
-viper.SetDefault("cors.allowCredentials", true)
-viper.SetDefault("cors.maxAge", 86400)
+	viper.SetDefault("cors.allowedMethods", []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"})
+	viper.SetDefault("cors.allowedHeaders", []string{"Content-Type", "Authorization", "X-Request-ID"})
+	viper.SetDefault("cors.exposedHeaders", []string{"X-Request-ID"})
+	viper.SetDefault("cors.allowCredentials", true)
+	viper.SetDefault("cors.maxAge", 86400)
 
 
 	viper.SetDefault("server.port", 8080)
