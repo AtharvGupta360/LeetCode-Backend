@@ -7,18 +7,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gupta/leetcode-judge/internal/common"
+	"github.com/gupta/leetcode-judge/internal/config"
 )
 
-type CORSConfig struct {
-	AllowedOrigins   []string `mapstructure:"allowedOrigins"`
-	AllowedMethods   []string `mapstructure:"allowedMethods"`
-	AllowedHeaders   []string `mapstructure:"allowedHeaders"`
-	ExposedHeaders   []string `mapstructure:"exposedHeaders"`
-	AllowCredentials bool     `mapstructure:"allowCredentials"`
-	MaxAge           int      `mapstructure:"maxAge"`
-}
-
-func CORS(cfg *CORSConfig) gin.HandlerFunc{
+func CORS(cfg *config.CORSConfig) gin.HandlerFunc{
 	allowOriginMap := make(map[string]bool,len(cfg.AllowedOrigins))
 	allowAll := false 
 	for _,origin:= range cfg.AllowedOrigins{

@@ -5,12 +5,16 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gupta/leetcode-judge/internal/auth"
 	"github.com/gupta/leetcode-judge/internal/common"
 	"github.com/gupta/leetcode-judge/internal/config"
+	"github.com/gupta/leetcode-judge/internal/handlers"
 	"github.com/gupta/leetcode-judge/internal/middleware"
+	"github.com/gupta/leetcode-judge/internal/repository"
+	"github.com/jmoiron/sqlx"
 )
 
-func NewServer(cfg *config.Config) *gin.Engine {
+func NewServer(cfg *config.Config, db *sqlx.DB) *gin.Engine {
 	gin.SetMode(cfg.Server.Mode)
 	router := gin.New()
 	router.Use(middleware.CORS(&cfg.CORS))
@@ -26,6 +30,32 @@ func NewServer(cfg *config.Config) *gin.Engine {
 			"status": "up",
 		})
 	})
+
+	// Initialize dependencies
+	userRepo := repository.NewUserRepository(db)
+	authService := auth.NewService(userRepo, &cfg.JWT)
+	authHandler := handlers.NewAuthHandler(authService)
+
+	// Public routes (no auth required)
+	api := router.Group("/api/v1")
+	{
+		api.POST("/auth/register", authHandler.Register)
+		api.POST("/auth/login", authHandler.Login)
+	}
+
+	// Protected routes (auth required)
+	protected := api.Group("/")
+	protected.Use(middleware.AuthRequired(&cfg.JWT))
+	{
+		protected.GET("/me", func(c *gin.Context) {
+			common.Success(c, http.StatusOK, "authenticated user", gin.H{
+				"userID":   c.GetString("userID"),
+				"username": c.GetString("username"),
+				"role":     c.GetString("role"),
+			})
+		})
+	}
+
 	return router
 }
 

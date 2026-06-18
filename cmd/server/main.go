@@ -38,7 +38,7 @@ func main() {
 		common.Logger.Info("auto-migrate disabled, skipping migrations")
 	}
 
-	router := server.NewServer(cfg)
+	router := server.NewServer(cfg, db)
 	server.Run(router, cfg)
 
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/gupta/leetcode-judge/internal/middleware"
 	"github.com/spf13/viper"
 )
 
@@ -12,7 +11,7 @@ type Config struct {
 	Server   ServerConfig   `mapstructure:"server"`
 	DataBase DatabaseConfig `mapstructure:"database"`
 	JWT      JWTConfig      `mapstructure:"jwt"`
-	CORS     middleware.CORSConfig `mapstructure:"cors"`
+	CORS     CORSConfig     `mapstructure:"cors"`
 }
 
 type ServerConfig struct {
@@ -30,6 +29,14 @@ type DatabaseConfig struct {
 	AutoMigrate bool   `mapstructure:"autoMigrate"`
 }
 
+type CORSConfig struct {
+	AllowedOrigins   []string `mapstructure:"allowedOrigins"`
+	AllowedMethods   []string `mapstructure:"allowedMethods"`
+	AllowedHeaders   []string `mapstructure:"allowedHeaders"`
+	ExposedHeaders   []string `mapstructure:"exposedHeaders"`
+	AllowCredentials bool     `mapstructure:"allowCredentials"`
+	MaxAge           int      `mapstructure:"maxAge"`
+}
 
 type JWTConfig struct {
 	SecretKey   string `mapstructure:"secretkey"`
