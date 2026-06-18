@@ -15,6 +15,10 @@ func NewServer(cfg *config.Config) *gin.Engine {
 	router := gin.New()
 	router.Use(middleware.CORS(&cfg.CORS))
 	router.Use(middleware.RequestID())
+	router.Use(middleware.RateLimiter(middleware.RateLimiterConfig{
+		RequestsPerSecond: 10,
+		BurstSize:         20,
+	}))
 	router.Use(middleware.Recovery())
 	router.Use(middleware.RequestLogger())
 	router.GET("/health", func(c *gin.Context) {
