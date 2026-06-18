@@ -21,16 +21,13 @@ type ServerConfig struct {
 }
 
 type DatabaseConfig struct {
-	Host     string `mapstructure:"host"`
-	DBName   string `mapstructure:"dbname"`
-	SSLMode  string `mapstructure:"sslmode"`
-	Port     int    `mapstructure:"port"`
-	User     string `mapstructure:"user"`
-	Password string `mapstructure:"password"`
-	//MaxIdleConns int `mapstructure:"maxIdleConns"`
-	//MaxOpenConns int `mapstructure:"maxOpenConns"`
-	//ConnMaxLifetime time.Duration `mapstructure:"connMaxLifetime"`
-
+	Host        string `mapstructure:"host"`
+	DBName      string `mapstructure:"dbname"`
+	SSLMode     string `mapstructure:"sslmode"`
+	Port        int    `mapstructure:"port"`
+	User        string `mapstructure:"user"`
+	Password    string `mapstructure:"password"`
+	AutoMigrate bool   `mapstructure:"autoMigrate"`
 }
 
 
@@ -59,6 +56,7 @@ func LoadConfig(path string) (*Config, error) {
 	viper.SetDefault("database.password", "postgres")
 	viper.SetDefault("database.dbname", "leetcode_judge")
 	viper.SetDefault("database.sslmode", "disable")
+	viper.SetDefault("database.autoMigrate", true)
 	viper.SetDefault("jwt.secretkey", "dev-secret-change-in-prod")
 	viper.SetDefault("jwt.expiryHours", 24)
 
