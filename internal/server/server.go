@@ -22,6 +22,7 @@ import (
     "github.com/gupta/leetcode-judge/internal/handlers"
     "github.com/gupta/leetcode-judge/internal/middleware"
     "github.com/gupta/leetcode-judge/internal/repository"
+    "github.com/gupta/leetcode-judge/internal/service"
 )
 
 
@@ -47,6 +48,10 @@ func NewServer(cfg *config.Config, db *sqlx.DB) *gin.Engine {
 	authService := auth.NewService(userRepo, &cfg.JWT)
 	authHandler := handlers.NewAuthHandler(authService)
 
+	problemRepo    := repository.NewProblemRepository(db)
+	problemService := service.NewProblemService(problemRepo)
+	problemHandler := handlers.NewProblemHandler(problemService)
+
 	// Public routes (no auth required)
 	api := router.Group("/api/v1")
 	{
@@ -54,7 +59,7 @@ func NewServer(cfg *config.Config, db *sqlx.DB) *gin.Engine {
 		api.POST("/auth/login", authHandler.Login)
 	}
 
-	// Protected routes (auth required)
+	// Protected routes — any authenticated user
 	protected := api.Group("/")
 	protected.Use(middleware.AuthRequired(&cfg.JWT))
 	{
@@ -65,6 +70,22 @@ func NewServer(cfg *config.Config, db *sqlx.DB) *gin.Engine {
 				"role":     c.GetString("role"),
 			})
 		})
+
+		// Problem read routes — any logged-in user
+		problems := protected.Group("/problems")
+		{
+			problems.GET("", problemHandler.List)
+			problems.GET("/:id", problemHandler.GetByID)
+		}
+
+		// Problem write routes — admin only
+		adminProblems := protected.Group("/problems")
+		adminProblems.Use(middleware.AdminRequired())
+		{
+			adminProblems.POST("", problemHandler.Create)
+			adminProblems.PUT("/:id", problemHandler.Update)
+			adminProblems.DELETE("/:id", problemHandler.Delete)
+		}
 	}
 
 	return router
