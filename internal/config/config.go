@@ -15,8 +15,12 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port int    `mapstructure:"port"`
-	Mode string `mapstructure:"mode"`
+    Port            int    `mapstructure:"port"`
+    Mode            string `mapstructure:"mode"`
+    ReadTimeout     int    `mapstructure:"read_timeout"`
+    WriteTimeout    int    `mapstructure:"write_timeout"`
+    IdleTimeout     int    `mapstructure:"idle_timeout"`
+    ShutdownTimeout int    `mapstructure:"shutdown_timeout"`
 }
 
 type DatabaseConfig struct {
@@ -53,10 +57,15 @@ func LoadConfig(path string) (*Config, error) {
 	viper.SetDefault("cors.exposedHeaders", []string{"X-Request-ID"})
 	viper.SetDefault("cors.allowCredentials", true)
 	viper.SetDefault("cors.maxAge", 86400)
-
-
+	
+// All server defaults grouped together
 	viper.SetDefault("server.port", 8080)
 	viper.SetDefault("server.mode", "debug")
+	viper.SetDefault("server.read_timeout", 15)
+	viper.SetDefault("server.write_timeout", 15)
+	viper.SetDefault("server.idle_timeout", 60)
+	viper.SetDefault("server.shutdown_timeout", 30)
+
 	viper.SetDefault("database.host", "localhost")
 	viper.SetDefault("database.port", 5432)
 	viper.SetDefault("database.user", "postgres")

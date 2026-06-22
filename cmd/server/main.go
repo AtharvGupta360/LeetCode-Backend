@@ -39,6 +39,8 @@ func main() {
 	}
 
 	router := server.NewServer(cfg, db)
-	server.Run(router, cfg)
+	if err := server.Run(router, cfg); err != nil {
+    common.Logger.Errorf("server exited with error: %v", err)
+}
 
 }
