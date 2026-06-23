@@ -52,6 +52,10 @@ func NewServer(cfg *config.Config, db *sqlx.DB) *gin.Engine {
 	problemService := service.NewProblemService(problemRepo)
 	problemHandler := handlers.NewProblemHandler(problemService)
 
+	testCaseRepo    := repository.NewTestCaseRepository(db)
+	testCaseService := service.NewTestCaseService(testCaseRepo, problemRepo)
+	testCaseHandler := handlers.NewTestCaseHandler(testCaseService)
+
 	// Public routes (no auth required)
 	api := router.Group("/api/v1")
 	{
@@ -76,6 +80,13 @@ func NewServer(cfg *config.Config, db *sqlx.DB) *gin.Engine {
 		{
 			problems.GET("", problemHandler.List)
 			problems.GET("/:id", problemHandler.GetByID)
+
+			// Test-case read routes — any logged-in user (hidden cases filtered by service)
+			testCases := problems.Group("/:problemId/test-cases")
+			{
+				testCases.GET("", testCaseHandler.List)
+				testCases.GET("/:id", testCaseHandler.GetByID)
+			}
 		}
 
 		// Problem write routes — admin only
@@ -85,6 +96,14 @@ func NewServer(cfg *config.Config, db *sqlx.DB) *gin.Engine {
 			adminProblems.POST("", problemHandler.Create)
 			adminProblems.PUT("/:id", problemHandler.Update)
 			adminProblems.DELETE("/:id", problemHandler.Delete)
+
+			// Test-case write routes — admin only
+			adminTestCases := adminProblems.Group("/:problemId/test-cases")
+			{
+				adminTestCases.POST("", testCaseHandler.Create)
+				adminTestCases.PUT("/:id", testCaseHandler.Update)
+				adminTestCases.DELETE("/:id", testCaseHandler.Delete)
+			}
 		}
 	}
 
