@@ -12,6 +12,8 @@ type Config struct {
 	DataBase DatabaseConfig `mapstructure:"database"`
 	JWT      JWTConfig      `mapstructure:"jwt"`
 	CORS     CORSConfig     `mapstructure:"cors"`
+	Redis    RedisConfig    `mapstructure:"redis"`
+	Judge    JudgeConfig    `mapstructure:"judge"`
 }
 
 type ServerConfig struct {
@@ -47,6 +49,20 @@ type JWTConfig struct {
 	ExpiryHours int    `mapstructure:"expiryHours"`
 }
 
+type RedisConfig struct {
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	Password string `mapstructure:"password"`
+	DB       int    `mapstructure:"db"`
+}
+
+type JudgeConfig struct {
+	TimeoutSeconds int `mapstructure:"timeoutSeconds"`
+	MemoryLimitMB  int `mapstructure:"memoryLimitMB"`
+	Workers        int `mapstructure:"workers"`
+	QueueSize      int `mapstructure:"queueSize"`
+}
+
 func LoadConfig(path string) (*Config, error) {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -75,6 +91,18 @@ func LoadConfig(path string) (*Config, error) {
 	viper.SetDefault("database.autoMigrate", true)
 	viper.SetDefault("jwt.secretkey", "dev-secret-change-in-prod")
 	viper.SetDefault("jwt.expiryHours", 24)
+
+	// Redis defaults
+	viper.SetDefault("redis.host", "localhost")
+	viper.SetDefault("redis.port", 6379)
+	viper.SetDefault("redis.password", "")
+	viper.SetDefault("redis.db", 0)
+
+	// Judge defaults
+	viper.SetDefault("judge.timeoutSeconds", 5)
+	viper.SetDefault("judge.memoryLimitMB", 256)
+	viper.SetDefault("judge.workers", 4)
+	viper.SetDefault("judge.queueSize", 1000)
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
