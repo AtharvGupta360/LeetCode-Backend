@@ -14,6 +14,7 @@ import (
     // Group 2: third-party
     "github.com/gin-gonic/gin"
     "github.com/jmoiron/sqlx"
+    "github.com/redis/go-redis/v9"
 
     // Group 3: internal
     "github.com/gupta/leetcode-judge/internal/auth"
@@ -21,12 +22,13 @@ import (
     "github.com/gupta/leetcode-judge/internal/config"
     "github.com/gupta/leetcode-judge/internal/handlers"
     "github.com/gupta/leetcode-judge/internal/middleware"
+    "github.com/gupta/leetcode-judge/internal/queue"
     "github.com/gupta/leetcode-judge/internal/repository"
     "github.com/gupta/leetcode-judge/internal/service"
 )
 
 
-func NewServer(cfg *config.Config, db *sqlx.DB) *gin.Engine {
+func NewServer(cfg *config.Config, db *sqlx.DB, redisClient *redis.Client) *gin.Engine {
 	gin.SetMode(cfg.Server.Mode)
 	router := gin.New()
 	router.Use(middleware.CORS(&cfg.CORS))
@@ -55,6 +57,11 @@ func NewServer(cfg *config.Config, db *sqlx.DB) *gin.Engine {
 	testCaseRepo    := repository.NewTestCaseRepository(db)
 	testCaseService := service.NewTestCaseService(testCaseRepo, problemRepo)
 	testCaseHandler := handlers.NewTestCaseHandler(testCaseService)
+
+	subRepo          := repository.NewSubmissionRepository(db)
+	judgeQueue       := queue.NewRedisQueue(redisClient)
+	subService       := service.NewSubmissionService(subRepo, problemRepo, judgeQueue)
+	subHandler       := handlers.NewSubmissionHandler(subService)
 
 	// Public routes (no auth required)
 	api := router.Group("/api/v1")
@@ -89,6 +96,14 @@ func NewServer(cfg *config.Config, db *sqlx.DB) *gin.Engine {
 			}
 		}
 
+		// Submission routes — any authenticated user
+		submissions := protected.Group("/submissions")
+		{
+			submissions.POST("", subHandler.Submit)
+			submissions.GET("/me", subHandler.ListMine)
+			submissions.GET("/:id", subHandler.GetByID)
+		}
+
 		// Problem write routes — admin only
 		adminProblems := protected.Group("/problems")
 		adminProblems.Use(middleware.AdminRequired())
@@ -104,6 +119,9 @@ func NewServer(cfg *config.Config, db *sqlx.DB) *gin.Engine {
 				adminTestCases.PUT("/:id", testCaseHandler.Update)
 				adminTestCases.DELETE("/:id", testCaseHandler.Delete)
 			}
+
+			// Submission admin routes — list all submissions for a problem
+			adminProblems.GET("/:problemId/submissions", subHandler.ListByProblem)
 		}
 	}
 
